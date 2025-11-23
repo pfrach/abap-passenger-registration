@@ -1,0 +1,64 @@
+*&---------------------------------------------------------------------*
+*& Report Z_PASSENGER_CREATION
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT z_passenger_creation.
+
+
+SELECTION-SCREEN BEGIN OF BLOCK blk1 WITH FRAME TITLE TEXT-001.
+  PARAMETERS: p_fname  TYPE z_fir_name OBLIGATORY,
+              p_lname  TYPE z_sur_name OBLIGATORY,
+              p_doctyp TYPE z_doc_type OBLIGATORY,
+              p_docnr  TYPE z_doc_nr OBLIGATORY,
+              p_telnr  TYPE z_tel_nr OBLIGATORY,
+              p_email  TYPE z_email_add OBLIGATORY,
+              p_passw  TYPE z_password OBLIGATORY.
+SELECTION-SCREEN END OF BLOCK blk1.
+
+START-OF-SELECTION.
+
+
+  DATA: lobj_passenger TYPE REF TO zcl_passenger,
+        lv_number      TYPE z_doc_nr.
+
+  TRY.
+
+
+      lobj_passenger = NEW zcl_passenger(
+        iv_first_name =     p_fname            " Fisrt name
+        iv_sur_name   =     p_lname            " Passenger Surname
+        iv_doc_type   =     p_doctyp           " Document type
+        iv_doc_nr     =     p_docnr            " Numer dokumentu
+        iv_tel_nr     =     p_telnr            " Telephone number
+        iv_email_add  =     p_email            " E-mail address
+        iv_password   =     p_passw
+      ).
+
+    CATCH zcl_ex_passenger.
+      MESSAGE 'Nieprawidłowy adres e-mail' TYPE 'S' DISPLAY LIKE 'E'.
+      RETURN.
+
+    CATCH zcl_invalid_document.
+      MESSAGE 'Nieprawidłowy format numeru dokumentu' TYPE 'S' DISPLAY LIKE 'E'.
+      RETURN.
+
+
+
+  ENDTRY.
+
+
+
+  lv_number = lobj_passenger->insert_into_table( ).
+
+*LEAVE TO LIST-PROCESSING.
+*MESSAGE |Użytkownik stworzony z numerem { lv_number }| TYPE 'S'.
+
+CALL FUNCTION 'POPUP_TO_INFORM'
+  EXPORTING
+    titel = 'Sukces'
+    txt1  = |Użytkownik stworzony z numerem { lv_number }|
+    txt2  = ''.
+
+LEAVE TO LIST-PROCESSING.
+WRITE: / 'Zakończono proces rejestracji.'.
